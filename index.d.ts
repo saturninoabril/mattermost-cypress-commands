@@ -5,13 +5,46 @@ declare namespace Cypress {
     allRequestResponses: any[];
     body: any;
     duration: number;
-    headers: { [key: string]: string };
+    headers: Object;
     isOkStatusCode: boolean;
     redirectedToUrl: string;
-    requestHeaders: { [key: string]: string };
+    requestHeaders: Object;
     status: number;
     statusText: string;
   }
+
+  interface NewUser {
+    email: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    nickname: string;
+    password: string;
+  }
+
+  interface User {
+    email: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    nickname: string;
+    locale: string;
+    position: string;
+    props: Object;
+    notify_props: UserNotifyProps;
+  }
+
+  interface UserNotifyProps {
+    email: boolean;
+    push: string;
+    desktop: string;
+    desktop_sound: boolean;
+    mention_keys: string;
+    channel: boolean;
+    first_name: boolean;
+  }
+
+  type UserStatus = "online" | "offline" | "away" | "dnd";
 
   interface Channel {
     name: string;
@@ -53,12 +86,12 @@ declare namespace Cypress {
     value: string;
   }
 
-  interface Theme {
-    [key: string]: string;
-  }
-
-  interface SidebarSetting {
-    [key: string]: string;
+  interface IncomingWebhook {
+    channel_id: string;
+    display_name: string;
+    description: string;
+    username: string;
+    icon_url: string;
   }
 
   interface Chainable<Subject = any> {
@@ -97,14 +130,13 @@ declare namespace Cypress {
 
     /**
      * Create a new channel.
-     *  * https://api.mattermost.com/#tag/channels/paths/~1channels~1direct/post
+     * https://api.mattermost.com/#tag/channels/paths/~1channels~1direct/post
      * @param teamId - The team ID of the team to create the channel on
      * @param name - The unique handle for the channel, will be present in the channel URL
      * @param displayName - The non-unique UI name for the channel
      * @param type - 'O' for a public channel (default), 'P' for a private channel
      * @param purpose - A short description of the purpose of the channel
      * @param header - Markdown-formatted text to display in the header of the channel
-     * All parameters required except purpose and header
      */
     apiCreateChannel(
       teamId: string,
@@ -119,7 +151,6 @@ declare namespace Cypress {
      * Create a new direct message channel between two users.
      * https://api.mattermost.com/#tag/channels/paths/~1channels~1direct/post
      * @param userIds - The two user ids to be in the direct message
-     * All parameters required
      */
     apiCreateDirectChannel(userIds: Array<string>): Chainable<Response>;
 
@@ -127,7 +158,6 @@ declare namespace Cypress {
      * Create a new group message channel to group of users. If the logged in user's id is not included in the list, it will be appended to the end.
      * https://api.mattermost.com/#tag/channels/paths/~1channels~1group/post
      * @param userIds - User ids to be in the group message channel
-     * All parameters required except purpose and header
      */
     apiCreateGroupChannel(userIds: Array<string>): Chainable<Response>;
 
@@ -137,7 +167,6 @@ declare namespace Cypress {
      * Direct and group message channels cannot be deleted.
      * https://api.mattermost.com/#tag/channels/paths/~1channels~1{channel_id}/delete
      * @param channelId - The channel ID to be deleted
-     * All parameter required
      */
     apiDeleteChannel(channelId: string): Chainable<Response>;
 
@@ -152,7 +181,6 @@ declare namespace Cypress {
      *   type - 'O' for a public channel (default), 'P' for a private channel
      *   purpose - A short description of the purpose of the channel
      *   header - Markdown-formatted text to display in the header of the channel
-     * Only channelId is required
      */
     apiUpdateChannel(channelId: string, channel: Channel): Chainable<Response>;
 
@@ -168,7 +196,6 @@ declare namespace Cypress {
      *   type - 'O' for a public channel (default), 'P' for a private channel
      *   purpose - A short description of the purpose of the channel
      *   header - Markdown-formatted text to display in the header of the channel
-     * Only channelId is required
      */
     apiPatchChannel(channelId: string, channel: Channel): Chainable<Response>;
 
@@ -177,7 +204,6 @@ declare namespace Cypress {
      * https://api.mattermost.com/#tag/channels/paths/~1teams~1name~1{team_name}~1channels~1name~1{channel_name}/get
      * @param teamName - Team name
      * @param channelName - Channel name
-     * All parameters required
      */
     apiGetChannelByName(
       teamName: string,
@@ -188,7 +214,6 @@ declare namespace Cypress {
      * Get channel from the provided channel id string.
      * https://api.mattermost.com/#tag/channels/paths/~1channels~1{channel_id}/get
      * @param channelId - Channel ID
-     * All parameter required
      */
     apiGetChannel(channelId: string): Chainable<Response>;
 
@@ -197,7 +222,6 @@ declare namespace Cypress {
      * https://api.mattermost.com/#tag/channels/paths/~1channels~1{channel_id}~1members/post
      * @param channelId - Channel ID
      * @param userId - User ID
-     * All parameter required
      */
     apiAddUserToChannel(channelId: string, userId: string): Chainable<Response>;
 
@@ -210,7 +234,6 @@ declare namespace Cypress {
      * Create a command for a team.
      * https://api.mattermost.com/#tag/commands/paths/~1commands/post
      * @param command - command to be created
-     * All parameter required
      */
     apiCreateCommand(command: Command): Chainable<Response>;
 
@@ -220,12 +243,18 @@ declare namespace Cypress {
     // *******************************************************************************
 
     /**
+     * Get a team on the system
+     * https://api.mattermost.com/#tag/teams/paths/~1teams~1{team_id}/get
+     * @param teamId - Team GUID
+     */
+    apiGetTeam(teamId: string): Chainable<Response>;
+
+    /**
      * Create a new team on the system.
      * https://api.mattermost.com/#tag/teams/paths/~1teams/post
      * @param name - Unique handler for a team, will be present in the team URL
      * @param displayName - Non-unique UI name for the team
      * @param type - 'O' for open (default), 'I' for invite only
-     * All parameter required
      */
     apiCreateTeam(
       name: string,
@@ -240,7 +269,6 @@ declare namespace Cypress {
      * https://api.mattermost.com/#tag/teams/paths/~1teams~1{team_id}/delete
      * @param teamId - Team ID
      * @param permanent - false (default) or true to permanently delete a team
-     * All parameter required
      */
     apiDeleteTeam(
       teamId: string,
@@ -254,7 +282,6 @@ declare namespace Cypress {
      * https://api.mattermost.com/#tag/teams/paths/~1teams~1{team_id}~1patch/put
      * @param teamId - Team ID
      * @param team - Team object to be updated
-     * Only teamId is required
      */
     apiPatchTeam(teamId: string, team: Team): Chainable<Response>;
 
@@ -276,7 +303,6 @@ declare namespace Cypress {
      * https://api.mattermost.com/#tag/teams/paths/~1teams~1{team_id}~1members/post
      * @param teamId - Team ID
      * @param userId - User ID
-     * Only teamId is required
      */
     apiAddUserToTeam(teamId: string, userId: string): Chainable<Response>;
 
@@ -285,7 +311,6 @@ declare namespace Cypress {
      * https://api.mattermost.com/#tag/teams/paths/~1teams~1{team_id}~1members~1batch/post
      * @param teamId - Team ID
      * @param teamMembers - users to add as members of a team
-     * Only teamId is required
      */
     apiAddUsersToTeam(
       teamId: string,
@@ -302,7 +327,6 @@ declare namespace Cypress {
      * https://api.mattermost.com/#tag/preferences/paths/~1users~1{user_id}~1preferences/put
      * @param preferences - List of preference objects
      * @param userId - "me" (default) or User ID
-     * Only userId is required
      */
     apiSaveUserPreference(
       preferences: Array<Preference> = [],
@@ -310,7 +334,7 @@ declare namespace Cypress {
     ): Chainable<Response>;
 
     /**
-     * Saves channel display mode preference of a user
+     * Convenient API command that saves channel display mode preference of a user
      * @param value - Either "full" (default) or "centered"
      */
     apiSaveChannelDisplayModePreference(
@@ -318,7 +342,7 @@ declare namespace Cypress {
     ): Chainable<Response>;
 
     /**
-     * Saves message display preference of a user
+     * Convenient API command that saves message display preference of a user
      * @param value - Either "clean" (default) or "compact"
      */
     apiSaveMessageDisplayPreference(
@@ -326,7 +350,7 @@ declare namespace Cypress {
     ): Chainable<Response>;
 
     /**
-     * Saves show markdown preview option preference of a user
+     * Convenient API command that saves show markdown preview option preference of a user
      * @param value - Either "true" to show the options (default) or "false"
      */
     apiSaveShowMarkdownPreviewPreference(
@@ -334,7 +358,7 @@ declare namespace Cypress {
     ): Chainable<Response>;
 
     /**
-     * Saves teammate name display preference of a user
+     * Convenient API command that saves teammate name display preference of a user
      * @param value - Either "username" (default), "nickname_full_name" or "full_name"
      */
     apiSaveTeammateNameDisplayPreference(
@@ -342,29 +366,186 @@ declare namespace Cypress {
     ): Chainable<Response>;
 
     /**
-     * Saves theme preference of a user
+     * Convenient API command that saves theme preference of a user
      * @param value - theme object.  Will pass default value if none is provided.
      */
-    apiSaveThemePreference(value: Theme = {}): Chainable<Response>;
+    apiSaveThemePreference(value: Object): Chainable<Response>;
 
     /**
-     * Saves theme preference of a user
+     * Convenient API command that saves theme preference of a user
      * @param value - sidebar settings object.  Will pass default value if none is provided.
      */
-    apiSaveSidebarSettingPreference(
-      value: SidebarSetting = {}
-    ): Chainable<Response>;
+    apiSaveSidebarSettingPreference(value: Object = {}): Chainable<Response>;
 
     /**
-     * Saves the preference on whether to show link previews
+     * Convenient API command that saves the preference on whether to show link previews
      * @param show - Either "true" to show link and images previews (default), or "false"
      */
     apiSaveShowPreviewPreference(show: string = "true"): Chainable<Response>;
 
     /**
-     * Saves the preference on whether to expand/collapse image previews
+     * Convenient API command that saves the preference on whether to expand/collapse image previews
      * @param collapse - Either "true" to show previews collapsed (default), or "false"
      */
     apiSavePreviewCollapsedPreference(collapse = "true"): Chainable<Response>;
+
+    // *******************************************************************************
+    // Users
+    // https://api.mattermost.com/#tag/users
+    // *******************************************************************************
+
+    /**
+     * Gets current user
+     * https://api.mattermost.com/#tag/users/paths/~1users~1{user_id}/get
+     */
+    apiGetMe(): Chainable<Response>;
+
+    /**
+     * Get a user object by providing a user email. Sensitive information will be sanitized out.
+     * https://api.mattermost.com/#tag/users/paths/~1users~1email~1{email}/get
+     * @param email - User Email
+     */
+    apiGetUserByEmail(email: string): Chainable<Response>;
+
+    /**
+     * Get a user object by providing a user email. Sensitive information will be sanitized out.
+     * https://api.mattermost.com/#tag/users/paths/~1users~1usernames/post
+     * @param usernames - List of usernames
+     */
+    apiGetUsersByUsernames(usernames: Array<string>): Chainable<Response>;
+
+    /**
+     * Convenient API command that get users who are not team members
+     * https://api.mattermost.com/#tag/users/paths/~1users/get
+     * @param notInTeamId - The ID of the team to exclude users for.
+     * @param page - The page to select, default 0.
+     * @param perPage - The number of users per page, default 60. There is a maximum limit of 200 users per page.
+     */
+    apiGetUsersNotInTeam(
+      notInTeamId: string,
+      page: number,
+      perPage: number
+    ): Chainable<Response>;
+
+    /**
+     * Partially update a user by providing only the fields to update.
+     * Omitted fields will not be updated.
+     * The fields that can be updated are defined in the request body, all other provided fields will be ignored.
+     * https://api.mattermost.com/#tag/users/paths/~1users~1{user_id}~1patch/put
+     * @param userId - User GUID
+     * @param user - User object that is to be updated
+     */
+    apiPatchUser(userId, user: User): Chainable<Response>;
+
+    /**
+     * Partially update logged in user by providing only the fields to update.
+     * Omitted fields will not be updated.
+     * The fields that can be updated are defined in the request body, all other provided fields will be ignored.
+     * https://api.mattermost.com/#tag/users/paths/~1users~1{user_id}~1patch/put
+     * @param user - User object that is to be updated
+     */
+    apiPatchMe(user: User): Chainable<Response>;
+
+    /**
+     * Creates a new user via API, adds them to 3 teams, and sets preference to bypass tutorial.
+     * Then logs in as the user
+     * @param user - Object of user email, username, and password that you can optionally set.
+     * @param teamIDs - list of teams to add the new user to
+     * @param bypassTutorial - whether to set user preferences to bypass the tutorial on first, default true to bypass, otherwise set to false.
+     * @returns {Object} - returns object containing email, username, id and password if you need it further in the test
+     */
+    apiCreateNewUser(
+      user: NewUser,
+      teamIds: Array<string>,
+      bypassTutorial: boolean
+    ): Chainable<Response>;
+
+    // *******************************************************************************
+    // Status
+    // https://api.mattermost.com/#tag/status
+    // *******************************************************************************
+
+    /**
+     * Manually set a user's status.
+     * https://api.mattermost.com/#tag/status/paths/~1users~1{user_id}~1status/put
+     * @param status - "online" (default), "offline", "away" or "dnd"
+     */
+    apiUpdateUserStatus(status: UserStatus): Chainable<Response>;
+
+    // *******************************************************************************
+    // Posts
+    // https://api.mattermost.com/#tag/posts
+    // *******************************************************************************
+
+    /**
+     * Manually set a user's status.
+     * https://api.mattermost.com/#tag/status/paths/~1users~1{user_id}~1status/put
+     * @param status - "online" (default), "offline", "away" or "dnd"
+     */
+    apiUnpinPosts(postId: string): Chainable<Response>;
+
+    // *******************************************************************************
+    // System
+    // https://api.mattermost.com/#tag/system
+    // *******************************************************************************
+
+    /**
+     * Update configuration
+     * https://api.mattermost.com/#tag/system/paths/~1config/put
+     * @param newSetting - Mattermost configuration
+     */
+    apiUpdateConfig(newSetting: Object): Chainable<Response>;
+
+    /**
+     * Get configuration
+     * https://api.mattermost.com/#tag/system/paths/~1config/get
+     */
+    apiGetConfig(): Chainable<Response>;
+
+    /**
+     * Get analytics data about the system.
+     * https://api.mattermost.com/#tag/system/paths/~1analytics~1old/get
+     */
+    apiGetAnalytics(): Chainable<Response>;
+
+    // *******************************************************************************
+    // Webhooks
+    // https://api.mattermost.com/#tag/webhooks
+    // *******************************************************************************
+
+    /**
+     * Create an incoming webhook for a channel
+     * https://api.mattermost.com/#tag/webhooks/paths/~1hooks~1incoming/post
+     * @param hook - Incoming webhook to be created
+     */
+    apiCreateIncomingWebhook(hook: IncomingWebhook): Chainable<Response>;
+
+    // *******************************************************************************
+    // Convenient commands using API
+    // *******************************************************************************
+
+    /**
+     * Creates a new user via the API , adds them to 3 teams, and sets preference to bypass tutorial.
+     * Then logs in as the user
+     * @param user - User to be created
+     * @param teamIds - teams where the new user will be added
+     * @param bypassTutorial - bypass tutorial (default "true"), otherwise false
+     */
+    loginAsNewUser(
+      user: NewUser,
+      teamIds: Array<string>,
+      bypassTutorial: boolean
+    ): Chainable<Response>;
+
+    /**
+     * Creates a new guest user via the API , adds them to 1 team with sysadmin user, and sets preference to bypass tutorial.
+     * Then logs in as the user
+     * @param user - User to be created
+     * @param bypassTutorial - bypass tutorial (default "true"), otherwise false
+     */
+    loginAsNewGuestUser(
+      user: NewUser,
+      bypassTutorial: boolean
+    ): Chainable<Response>;
   }
 }

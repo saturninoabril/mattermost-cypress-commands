@@ -3,26 +3,8 @@
 
 const merge = require('merge-deep');
 
-const utils = require('./utils');
-
-const HEADERS = {'X-Requested-With': 'XMLHttpRequest'};
-
-const HTTP_STATUS = {
-    OK: 200,
-    CREATED: 201,
-};
-
-const METHOD = {
-    DELETE: 'DELETE',
-    GET: 'GET',
-    POST: 'POST',
-    PUT: 'PUT',
-};
-
-function wrapResponse(response, expectedStatus) {
-    expect(response.status).to.equal(expectedStatus);
-    return cy.wrap(response);
-}
+const {HEADERS, HTTP_STATUS, METHOD} = require('./constants');
+const {getRandomInt, wrapResponse} = require('./utils');
 
 // *****************************************************************************
 // Authentication
@@ -30,7 +12,7 @@ function wrapResponse(response, expectedStatus) {
 // *****************************************************************************
 
 Cypress.Commands.add('apiLogin', (username, password) => {
-    cy.request({
+    return cy.request({
         headers: HEADERS,
         url: '/api/v4/users/login',
         method: METHOD.POST,
@@ -76,7 +58,7 @@ Cypress.Commands.add('apiGetBots', () => {
 // *****************************************************************************
 
 Cypress.Commands.add('apiCreateChannel', (teamId, name, displayName, type = 'O', purpose = '', header = '') => {
-    const uniqueName = `${name}-${utils.getRandomInt(9999).toString()}`;
+    const uniqueName = `${name}-${getRandomInt(9999).toString()}`;
 
     return cy.request({
         headers: HEADERS,
@@ -171,14 +153,12 @@ Cypress.Commands.add('apiAddUserToChannel', (channelId, userId) => {
 // *****************************************************************************
 
 Cypress.Commands.add('apiCreateCommand', (command = {}) => {
-    const options = {
+    return cy.request({
         url: '/api/v4/commands',
         headers: HEADERS,
         method: METHOD.POST,
         body: command,
-    };
-
-    return cy.request(options).then((response) => wrapResponse(response, HTTP_STATUS.CREATED));
+    }).then((response) => wrapResponse(response, HTTP_STATUS.CREATED));
 });
 
 // *****************************************************************************
@@ -186,8 +166,22 @@ Cypress.Commands.add('apiCreateCommand', (command = {}) => {
 // https://api.mattermost.com/#tag/teams
 // *****************************************************************************
 
+/**
+ * Gets a team on the system
+ * * @param {String} teamId - The team ID to get
+ * All parameter required
+ */
+
+Cypress.Commands.add('apiGetTeam', (teamId) => {
+    return cy.request({
+        headers: HEADERS,
+        url: `api/v4/teams/${teamId}`,
+        method: METHOD.GET,
+    }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
+});
+
 Cypress.Commands.add('apiCreateTeam', (name, displayName, type = 'O') => {
-    const uniqueName = `${name}-${utils.getRandomInt(9999).toString()}`;
+    const uniqueName = `${name}-${getRandomInt(9999).toString()}`;
 
     return cy.request({
         headers: HEADERS,
@@ -235,7 +229,7 @@ Cypress.Commands.add('apiGetMyTeams', () => {
 });
 
 Cypress.Commands.add('apiAddUserToTeam', (teamId, userId) => {
-    cy.request({
+    return cy.request({
         method: METHOD.POST,
         url: `/api/v4/teams/${teamId}/members`,
         headers: HEADERS,
@@ -267,139 +261,17 @@ Cypress.Commands.add('apiSaveUserPreference', (preferences = [], userId = 'me') 
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
-Cypress.Commands.add('apiSaveChannelDisplayModePreference', (value = 'full') => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const preference = {
-            user_id: cookie.value,
-            category: 'display_settings',
-            name: 'channel_display_mode',
-            value,
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
-Cypress.Commands.add('apiSaveMessageDisplayPreference', (value = 'clean') => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const preference = {
-            user_id: cookie.value,
-            category: 'display_settings',
-            name: 'message_display',
-            value,
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
-Cypress.Commands.add('apiSaveShowMarkdownPreviewPreference', (value = 'true') => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const preference = {
-            user_id: cookie.value,
-            category: 'advanced_settings',
-            name: 'feature_enabled_markdown_preview',
-            value,
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
-Cypress.Commands.add('apiSaveTeammateNameDisplayPreference', (value = 'username') => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const preference = {
-            user_id: cookie.value,
-            category: 'display_settings',
-            name: 'name_format',
-            value,
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
-Cypress.Commands.add('apiSaveThemePreference', (value = {}) => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const preference = {
-            user_id: cookie.value,
-            category: 'theme',
-            name: '',
-            value,
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
-const defaultSidebarSettingPreference = {
-    grouping: 'by_type',
-    unreads_at_top: 'true',
-    favorite_at_top: 'true',
-    sorting: 'alpha',
-};
-
-Cypress.Commands.add('apiSaveSidebarSettingPreference', (value = {}) => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const newValue = {
-            ...defaultSidebarSettingPreference,
-            ...value,
-        };
-
-        const preference = {
-            user_id: cookie.value,
-            category: 'sidebar_settings',
-            name: '',
-            value: JSON.stringify(newValue),
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
-Cypress.Commands.add('apiSaveShowPreviewPreference', (show = 'true') => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const preference = {
-            user_id: cookie.value,
-            category: 'display_settings',
-            name: 'link_previews',
-            value: show,
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
-Cypress.Commands.add('apiSavePreviewCollapsedPreference', (collapse = 'true') => {
-    return cy.getCookie('MMUSERID').then((cookie) => {
-        const preference = {
-            user_id: cookie.value,
-            category: 'display_settings',
-            name: 'collapse_previews',
-            value: collapse,
-        };
-
-        return cy.apiSaveUserPreference([preference]);
-    });
-});
-
 // *****************************************************************************
 // Users
 // https://api.mattermost.com/#tag/users
 // *****************************************************************************
-
-/**
- * Gets current user
- * This API assume that the user is logged
- * no params required because we are using /me to refer to current user
- */
 
 Cypress.Commands.add('apiGetMe', () => {
     return cy.request({
         headers: HEADERS,
         url: 'api/v4/users/me',
         method: METHOD.GET,
-    });
+    }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
 Cypress.Commands.add('apiGetUserByEmail', (email) => {
@@ -409,36 +281,29 @@ Cypress.Commands.add('apiGetUserByEmail', (email) => {
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
-Cypress.Commands.add('apiGetUsers', (usernames = []) => {
+Cypress.Commands.add('apiGetUsersByUsernames', (usernames = []) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/users/usernames',
         method: METHOD.POST,
         body: usernames,
-    });
+    }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
-/**
- * List users that are not team members
- * @param {String} teamId - The team GUID
- * @param {Integer} page - The desired page of the paginated list
- * @param {Integer} perPage - The number of users per page
- * All parameter required
- */
-Cypress.Commands.add('apiGetUsersNotInTeam', (teamId, page = 0, perPage = 60) => {
+Cypress.Commands.add('apiGetUsersNotInTeam', (notInTeamId, page = 0, perPage = 60) => {
     return cy.request({
         method: METHOD.GET,
-        url: `/api/v4/users?not_in_team=${teamId}&page=${page}&per_page=${perPage}`,
+        url: `/api/v4/users?not_in_team=${notInTeamId}&page=${page}&per_page=${perPage}`,
         headers: HEADERS,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
-Cypress.Commands.add('apiPatchUser', (userId, userData) => {
+Cypress.Commands.add('apiPatchUser', (userId, user) => {
     return cy.request({
         headers: HEADERS,
         method: METHOD.PUT,
         url: `/api/v4/users/${userId}/patch`,
-        body: userData,
+        body: user,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
@@ -451,17 +316,7 @@ Cypress.Commands.add('apiPatchMe', (data) => {
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
-/**
- * Creates a new user via the API, adds them to 3 teams, and sets preference to bypass tutorial.
- * Then logs in as the user
- * @param {Object} user - Object of user email, username, and password that you can optionally set.
- * @param {Array} teamIDs - list of teams to add the new user to
- * @param {Boolean} bypassTutorial - whether to set user preferences to bypass the tutorial on first login (true) or to show it (false)
- * Otherwise use default values
- @returns {Object} Returns object containing email, username, id and password if you need it further in the test
- */
-
-Cypress.Commands.add('createNewUser', (user = {}, teamIds = [], bypassTutorial = true) => {
+Cypress.Commands.add('apiCreateNewUser', (user = {}, teamIds = [], bypassTutorial = true) => {
     const timestamp = Date.now();
 
     const {
@@ -469,11 +324,8 @@ Cypress.Commands.add('createNewUser', (user = {}, teamIds = [], bypassTutorial =
         username = `user${timestamp}`,
         firstName = `First${timestamp}`,
         lastName = `Last${timestamp}`,
-        nickname = `NewE2ENickname${timestamp}`,
+        nickname = `Nickname${timestamp}`,
         password = 'password123'} = user;
-
-    // # Login as sysadmin to make admin requests
-    cy.apiLogin('sysadmin');
 
     const createUserOption = {
         headers: HEADERS,
@@ -536,31 +388,6 @@ Cypress.Commands.add('createNewUser', (user = {}, teamIds = [], bypassTutorial =
 });
 
 /**
- * Creates a new user via the API , adds them to 3 teams, and sets preference to bypass tutorial.
- * Then logs in as the user
- * @param {Object} user - Object of user email, username, and password that you can optionally set.
- * @param {Boolean} bypassTutorial - Whether to set user preferences to bypass the tutorial (true) or to show it (false)
- * Otherwise use default values
- @returns {Object} Returns object containing email, username, id and password if you need it further in the test
- */
-Cypress.Commands.add('loginAsNewUser', (user = {}, teamIds = [], bypassTutorial = true) => {
-    return cy.createNewUser(user, teamIds, bypassTutorial).then((newUser) => {
-        cy.apiLogout();
-        cy.request({
-            headers: HEADERS,
-            url: '/api/v4/users/login',
-            method: METHOD.POST,
-            body: {login_id: newUser.username, password: newUser.password},
-        }).then((response) => {
-            expect(response.status).to.equal(200);
-            cy.visit('/ad-1/channels/town-square');
-
-            return cy.wrap(newUser);
-        });
-    });
-});
-
-/**
  * Saves channel display mode preference of a user directly via API
  * This API assume that the user is logged in and has cookie to access
  * @param {String} status - "online" (default), "offline", "away" or "dnd"
@@ -574,7 +401,7 @@ Cypress.Commands.add('apiUpdateUserStatus', (status = 'online') => {
             url: '/api/v4/users/me/status',
             method: METHOD.PUT,
             body: data,
-        });
+        }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
     });
 });
 
@@ -584,16 +411,16 @@ Cypress.Commands.add('apiUpdateUserStatus', (status = 'online') => {
 // *****************************************************************************
 
 /**
-* Unpins pinned posts of given postID directly via API
-* This API assume that the user is logged in and has cookie to access
-* @param {String} postId - Post ID of the pinned post to unpin
+* Unpin a post to the channel
+* https://api.mattermost.com/#tag/posts/paths/~1posts~1{post_id}~1unpin/post
+* @param postId - Post GUID
 */
 Cypress.Commands.add('apiUnpinPosts', (postId) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/posts/' + postId + '/unpin',
         method: METHOD.POST,
-    });
+    }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
 // *****************************************************************************
@@ -601,58 +428,38 @@ Cypress.Commands.add('apiUnpinPosts', (postId) => {
 // https://api.mattermost.com/#tag/system
 // *****************************************************************************
 
-Cypress.Commands.add('apiUpdateConfigBasic', (newSettings = {}) => {
-    // # Get current settings
-    cy.request('/api/v4/config').then((response) => {
-        const oldSettings = response.body;
-
-        const settings = merge(oldSettings, newSettings);
-
-        // # Set the modified settings
-        cy.request({
-            url: '/api/v4/config',
-            headers: HEADERS,
-            method: METHOD.PUT,
-            body: settings,
-        });
-    });
-});
-
 Cypress.Commands.add('apiUpdateConfig', (newSettings = {}) => {
-    cy.apiLogin('sysadmin');
-
     // # Get current settings
-    cy.request('/api/v4/config').then((response) => {
-        const oldSettings = response.body;
+    return cy.apiGetConfig.then((getResponse) => {
+        const oldSettings = getResponse.body;
 
         const settings = merge(oldSettings, newSettings);
 
         // # Set the modified settings
-        cy.request({
+        return cy.request({
             url: '/api/v4/config',
             headers: HEADERS,
             method: METHOD.PUT,
             body: settings,
-        });
+        }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
     });
-
-    cy.apiLogout();
 });
 
 Cypress.Commands.add('apiGetConfig', () => {
-    cy.apiLogin('sysadmin');
-
     // # Get current settings
-    return cy.request('/api/v4/config').then((response) => wrapResponse(response, HTTP_STATUS.OK));
+    return cy.request({
+        url: '/api/v4/config',
+        headers: HEADERS,
+        method: METHOD.GET,
+    }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
-/**
- * Get some analytics data about the system.
- */
 Cypress.Commands.add('apiGetAnalytics', () => {
-    cy.apiLogin('sysadmin');
-
-    return cy.request('/api/v4/analytics/old').then((response) => wrapResponse(response, HTTP_STATUS.OK));
+    return cy.request({
+        url: '/api/v4/analytics/old',
+        headers: HEADERS,
+        method: METHOD.GET,
+    }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
 // *****************************************************************************
@@ -660,70 +467,13 @@ Cypress.Commands.add('apiGetAnalytics', () => {
 // https://api.mattermost.com/#tag/webhooks
 // *****************************************************************************
 
-Cypress.Commands.add('apiCreateWebhook', (hook = {}, isIncoming = true) => {
-    const hookUrl = isIncoming ? '/api/v4/hooks/incoming' : '/api/v4/hooks/outgoing';
-    const options = {
-        url: hookUrl,
+Cypress.Commands.add('apiCreateIncomingWebhook', (hook = {}) => {
+    return cy.request({
+        url: '/api/v4/hooks/incoming',
         headers: HEADERS,
         method: METHOD.POST,
         body: hook,
-    };
-
-    return cy.request(options).then((response) => {
-        const data = response.body;
-        return {...data, url: isIncoming ? `${Cypress.config().baseUrl}/hooks/${data.id}` : ''};
-    });
-});
-
-/**
- * Gets a team on the system
- * * @param {String} teamId - The team ID to get
- * All parameter required
- */
-
-Cypress.Commands.add('apiGetTeam', (teamId) => {
-    return cy.request({
-        headers: HEADERS,
-        url: `api/v4/teams/${teamId}`,
-        method: METHOD.GET,
-    }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
-});
-
-/**
- * Creates a new guest user via the API , adds them to 1 team with sysadmin user, and sets preference to bypass tutorial.
- * Then logs in as the user
- * @param {Object} user - Object of user email, username, and password that you can optionally set.
- * @param {Boolean} bypassTutorial - Whether to set user preferences to bypass the tutorial (true) or to show it (false)
- * Otherwise use default values
- @returns {Object} Returns object containing email, username, id and password if you need it further in the test
- */
-Cypress.Commands.add('loginAsNewGuestUser', (user = {}, bypassTutorial = true) => {
-    // # Login as sysadmin to make admin requests
-    cy.apiLogin('sysadmin');
-
-    // # Create a New Team for Guest User
-    return cy.apiCreateTeam('guest-team', 'Guest Team').then((createResponse) => {
-        const team = createResponse.body;
-        cy.getCookie('MMUSERID').then((cookie) => {
-            // #Assign Sysadmin user to the newly created team
-            cy.apiAddUserToTeam(team.id, cookie.value);
-        });
-
-        // #Create New User
-        return cy.createNewUser(user, [team.id], bypassTutorial).then((newUser) => {
-            // # Demote Regular Member to Guest User
-            cy.demoteUser(newUser.id);
-            cy.request({
-                headers: HEADERS,
-                url: '/api/v4/users/login',
-                method: METHOD.POST,
-                body: {login_id: newUser.username, password: newUser.password},
-            }).then(() => {
-                cy.visit(`/${team.name}`);
-                return cy.wrap(newUser);
-            });
-        });
-    });
+    }).then((response) => wrapResponse({...response, url: `${Cypress.config().baseUrl}/hooks/${response.body.id}`}, HTTP_STATUS.OK));
 });
 
 /**

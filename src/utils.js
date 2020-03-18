@@ -5,4 +5,12 @@ const getRandomInt = (max) => {
     return Math.floor(Math.random() * Math.floor(max));
 };
 
-module.exports = {getRandomInt};
+function wrapResponse(response, expectedStatus) {
+    expect(response.status).to.equal(expectedStatus);
+    return cy.wrap(response);
+}
+
+module.exports = {
+    getRandomInt,
+    wrapResponse,
+};
