@@ -3,7 +3,7 @@
 
 const merge = require('merge-deep');
 
-const {HEADERS, HTTP_STATUS, METHOD} = require('./constants');
+const {HEADERS, HTTP_STATUS, HTTP_METHOD} = require('./constants');
 const {getRandomInt, wrapResponse} = require('./utils');
 
 // *****************************************************************************
@@ -15,7 +15,7 @@ Cypress.Commands.add('apiLogin', (username, password) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/users/login',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: {login_id: username, password},
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
@@ -24,7 +24,7 @@ Cypress.Commands.add('apiLogout', () => {
     cy.request({
         headers: HEADERS,
         url: '/api/v4/users/logout',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         log: false,
     });
 
@@ -48,7 +48,7 @@ Cypress.Commands.add('apiGetBots', () => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/bots',
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
@@ -63,7 +63,7 @@ Cypress.Commands.add('apiCreateChannel', (teamId, name, displayName, type = 'O',
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/channels',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: {
             team_id: teamId,
             name: uniqueName,
@@ -79,7 +79,7 @@ Cypress.Commands.add('apiCreateDirectChannel', (userIds) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/channels/direct',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: userIds,
     }).then((response) => wrapResponse(response, HTTP_STATUS.CREATED));
 });
@@ -88,7 +88,7 @@ Cypress.Commands.add('apiCreateGroupChannel', (userIds = []) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/channels/group',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: userIds,
     }).then((response) => wrapResponse(response, HTTP_STATUS.CREATED));
 });
@@ -97,7 +97,7 @@ Cypress.Commands.add('apiDeleteChannel', (channelId) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/channels/' + channelId,
-        method: METHOD.DELETE,
+        method: HTTP_METHOD.DELETE,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
@@ -105,7 +105,7 @@ Cypress.Commands.add('apiUpdateChannel', (channelId, channel) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/channels/' + channelId,
-        method: METHOD.PUT,
+        method: HTTP_METHOD.PUT,
         body: {
             id: channelId,
             ...channel,
@@ -116,7 +116,7 @@ Cypress.Commands.add('apiUpdateChannel', (channelId, channel) => {
 Cypress.Commands.add('apiPatchChannel', (channelId, channel) => {
     return cy.request({
         headers: HEADERS,
-        method: METHOD.PUT,
+        method: HTTP_METHOD.PUT,
         url: `/api/v4/channels/${channelId}/patch`,
         body: channel,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
@@ -140,7 +140,7 @@ Cypress.Commands.add('apiAddUserToChannel', (channelId, userId) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/channels/' + channelId + '/members',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: {
             user_id: userId,
         },
@@ -156,7 +156,7 @@ Cypress.Commands.add('apiCreateCommand', (command = {}) => {
     return cy.request({
         url: '/api/v4/commands',
         headers: HEADERS,
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: command,
     }).then((response) => wrapResponse(response, HTTP_STATUS.CREATED));
 });
@@ -176,7 +176,7 @@ Cypress.Commands.add('apiGetTeam', (teamId) => {
     return cy.request({
         headers: HEADERS,
         url: `api/v4/teams/${teamId}`,
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
@@ -186,7 +186,7 @@ Cypress.Commands.add('apiCreateTeam', (name, displayName, type = 'O') => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/teams',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: {
             name: uniqueName,
             display_name: displayName,
@@ -199,7 +199,7 @@ Cypress.Commands.add('apiDeleteTeam', (teamId, permanent = false) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/teams/' + teamId + (permanent ? '?permanent=true' : ''),
-        method: METHOD.DELETE,
+        method: HTTP_METHOD.DELETE,
     });
 });
 
@@ -207,7 +207,7 @@ Cypress.Commands.add('apiPatchTeam', (teamId, teamData) => {
     return cy.request({
         headers: HEADERS,
         url: `/api/v4/teams/${teamId}/patch`,
-        method: METHOD.PUT,
+        method: HTTP_METHOD.PUT,
         body: teamData,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
@@ -216,7 +216,7 @@ Cypress.Commands.add('apiGetTeams', () => {
     return cy.request({
         headers: HEADERS,
         url: 'api/v4/teams',
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
@@ -224,13 +224,13 @@ Cypress.Commands.add('apiGetMyTeams', () => {
     return cy.request({
         headers: HEADERS,
         url: 'api/v4/users/me/teams',
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
 Cypress.Commands.add('apiAddUserToTeam', (teamId, userId) => {
     return cy.request({
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         url: `/api/v4/teams/${teamId}/members`,
         headers: HEADERS,
         body: {team_id: teamId, user_id: userId},
@@ -240,7 +240,7 @@ Cypress.Commands.add('apiAddUserToTeam', (teamId, userId) => {
 
 Cypress.Commands.add('apiAddUsersToTeam', (teamId, teamMembers) => {
     return cy.request({
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         url: `/api/v4/teams/${teamId}/members/batch`,
         headers: HEADERS,
         body: teamMembers,
@@ -256,7 +256,7 @@ Cypress.Commands.add('apiSaveUserPreference', (preferences = [], userId = 'me') 
     return cy.request({
         headers: HEADERS,
         url: `/api/v4/users/${userId}/preferences`,
-        method: METHOD.PUT,
+        method: HTTP_METHOD.PUT,
         body: preferences,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
@@ -270,7 +270,7 @@ Cypress.Commands.add('apiGetMe', () => {
     return cy.request({
         headers: HEADERS,
         url: 'api/v4/users/me',
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
@@ -285,14 +285,14 @@ Cypress.Commands.add('apiGetUsersByUsernames', (usernames = []) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/users/usernames',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: usernames,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
 Cypress.Commands.add('apiGetUsersNotInTeam', (notInTeamId, page = 0, perPage = 60) => {
     return cy.request({
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
         url: `/api/v4/users?not_in_team=${notInTeamId}&page=${page}&per_page=${perPage}`,
         headers: HEADERS,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
@@ -301,7 +301,7 @@ Cypress.Commands.add('apiGetUsersNotInTeam', (notInTeamId, page = 0, perPage = 6
 Cypress.Commands.add('apiPatchUser', (userId, user) => {
     return cy.request({
         headers: HEADERS,
-        method: METHOD.PUT,
+        method: HTTP_METHOD.PUT,
         url: `/api/v4/users/${userId}/patch`,
         body: user,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
@@ -311,7 +311,7 @@ Cypress.Commands.add('apiPatchMe', (data) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/users/me/patch',
-        method: METHOD.PUT,
+        method: HTTP_METHOD.PUT,
         body: data,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
@@ -329,7 +329,7 @@ Cypress.Commands.add('apiCreateNewUser', (user = {}, teamIds = [], bypassTutoria
 
     const createUserOption = {
         headers: HEADERS,
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         url: '/api/v4/users',
         body: {email, username, first_name: firstName, last_name: lastName, password, nickname},
     };
@@ -399,7 +399,7 @@ Cypress.Commands.add('apiUpdateUserStatus', (status = 'online') => {
         return cy.request({
             headers: HEADERS,
             url: '/api/v4/users/me/status',
-            method: METHOD.PUT,
+            method: HTTP_METHOD.PUT,
             body: data,
         }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
     });
@@ -419,7 +419,7 @@ Cypress.Commands.add('apiUnpinPosts', (postId) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/posts/' + postId + '/unpin',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
@@ -439,7 +439,7 @@ Cypress.Commands.add('apiUpdateConfig', (newSettings = {}) => {
         return cy.request({
             url: '/api/v4/config',
             headers: HEADERS,
-            method: METHOD.PUT,
+            method: HTTP_METHOD.PUT,
             body: settings,
         }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
     });
@@ -450,7 +450,7 @@ Cypress.Commands.add('apiGetConfig', () => {
     return cy.request({
         url: '/api/v4/config',
         headers: HEADERS,
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
@@ -458,7 +458,7 @@ Cypress.Commands.add('apiGetAnalytics', () => {
     return cy.request({
         url: '/api/v4/analytics/old',
         headers: HEADERS,
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
 
@@ -471,55 +471,9 @@ Cypress.Commands.add('apiCreateIncomingWebhook', (hook = {}) => {
     return cy.request({
         url: '/api/v4/hooks/incoming',
         headers: HEADERS,
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: hook,
     }).then((response) => wrapResponse({...response, url: `${Cypress.config().baseUrl}/hooks/${response.body.id}`}, HTTP_STATUS.OK));
-});
-
-/**
- * Demote a Member to Guest directly via API
- * @param {String} userId - The user ID
- * All parameter required
- */
-Cypress.Commands.add('demoteUser', (userId) => {
-    //Demote Regular Member to Guest User
-    const baseUrl = Cypress.config('baseUrl');
-    cy.externalRequest({user: users.sysadmin, method: METHOD.POST, baseUrl, path: `users/${userId}/demote`});
-});
-
-/**
- * Remove a User from a Channel directly via API
- * @param {String} channelId - The channel ID
- * @param {String} userId - The user ID
- * All parameter required
- */
-Cypress.Commands.add('removeUserFromChannel', (channelId, userId) => {
-    //Remove a User from a Channel
-    const baseUrl = Cypress.config('baseUrl');
-    cy.externalRequest({user: users.sysadmin, method: METHOD.DELETE, baseUrl, path: `channels/${channelId}/members/${userId}`});
-});
-
-/**
- * Remove a User from a Team directly via API
- * @param {String} teamID - The team ID
- * @param {String} userId - The user ID
- * All parameter required
- */
-Cypress.Commands.add('removeUserFromTeam', (teamId, userId) => {
-    //Remove a User from a Channel
-    const baseUrl = Cypress.config('baseUrl');
-    cy.externalRequest({user: users.sysadmin, method: METHOD.DELETE, baseUrl, path: `teams/${teamId}/members/${userId}`});
-});
-
-/**
- * Promote a Guest to a Member directly via API
- * @param {String} userId - The user ID
- * All parameter required
- */
-Cypress.Commands.add('promoteUser', (userId) => {
-    //Promote Regular Member to Guest User
-    const baseUrl = Cypress.config('baseUrl');
-    cy.externalRequest({user: users.sysadmin, method: METHOD.POST, baseUrl, path: `users/${userId}/promote`});
 });
 
 // *****************************************************************************
@@ -537,7 +491,7 @@ Cypress.Commands.add('installPluginFromUrl', (pluginDownloadUrl, force = false) 
     return cy.request({
         headers: HEADERS,
         url: `/api/v4/plugins/install_from_url?plugin_download_url=${encodeURIComponent(pluginDownloadUrl)}&force=${force}`,
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         timeout: 60000,
     }).then((response) => wrapResponse(response, HTTP_STATUS.CREATED));
 });
@@ -551,7 +505,7 @@ Cypress.Commands.add('uninstallPluginById', (pluginId) => {
     return cy.request({
         headers: HEADERS,
         url: `/api/v4/plugins/${encodeURIComponent(pluginId)}`,
-        method: METHOD.DELETE,
+        method: HTTP_METHOD.DELETE,
         failOnStatusCode: false,
     }).then((response) => {
         if (response.status !== 200 && response.status !== 404) {
@@ -569,7 +523,7 @@ Cypress.Commands.add('getAllPlugins', () => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/plugins',
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
         failOnStatusCode: false,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
@@ -583,7 +537,7 @@ Cypress.Commands.add('enablePluginById', (pluginId) => {
     return cy.request({
         headers: HEADERS,
         url: `/api/v4/plugins/${encodeURIComponent(pluginId)}/enable`,
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         timeout: 60000,
         failOnStatusCode: true,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
@@ -602,7 +556,7 @@ Cypress.Commands.add('uploadBinaryFileByName', (fileName, fileType) => {
         // File in binary format gets converted to blob so it can be sent as Form data
         Cypress.Blob.binaryStringToBlob(content, fileType).then((blob) => {
             formData.set('plugin', blob, fileName);
-            formRequest('POST', '/api/v4/plugins', formData);
+            formRequest(HTTP_METHOD.POST, '/api/v4/plugins', formData);
         });
     });
 });
@@ -654,7 +608,7 @@ Cypress.Commands.add('apiCreateBot', (username, displayName, description) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/bots',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: {
             username,
             display_name: displayName,
@@ -674,7 +628,7 @@ Cypress.Commands.add('apiAccessToken', (userId, description) => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/users/' + userId + '/tokens',
-        method: METHOD.POST,
+        method: HTTP_METHOD.POST,
         body: {
             description,
         },
@@ -689,7 +643,7 @@ Cypress.Commands.add('apiGetLDAPSync', () => {
     return cy.request({
         headers: HEADERS,
         url: '/api/v4/jobs/type/ldap_sync?page=0&per_page=50',
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
         timeout: 60000,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
@@ -708,7 +662,7 @@ Cypress.Commands.add('getRoleByName', (roleName) => {
     return cy.request({
         headers: HEADERS,
         url: `/api/v4/roles/name/${roleName}`,
-        method: METHOD.GET,
+        method: HTTP_METHOD.GET,
         timeout: 60000,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));
 });
@@ -723,7 +677,7 @@ Cypress.Commands.add('patchRole', (roleID, patch) => {
     return cy.request({
         headers: HEADERS,
         url: `/api/v4/roles/${roleID}/patch`,
-        method: METHOD.PUT,
+        method: HTTP_METHOD.PUT,
         timeout: 60000,
         body: patch,
     }).then((response) => wrapResponse(response, HTTP_STATUS.OK));

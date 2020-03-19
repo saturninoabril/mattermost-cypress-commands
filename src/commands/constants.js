@@ -8,7 +8,7 @@ const HTTP_STATUS = {
     CREATED: 201,
 };
 
-const METHOD = {
+const HTTP_METHOD = {
     DELETE: 'DELETE',
     GET: 'GET',
     POST: 'POST',
@@ -18,5 +18,5 @@ const METHOD = {
 module.exports = {
     HEADERS,
     HTTP_STATUS,
-    METHOD,
+    HTTP_METHOD,
 };

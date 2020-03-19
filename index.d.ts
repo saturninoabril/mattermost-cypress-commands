@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 
+const { HTTP_METHOD } = require("./constants");
+
 declare namespace Cypress {
   interface Response {
     allRequestResponses: any[];
@@ -44,7 +46,21 @@ declare namespace Cypress {
     first_name: boolean;
   }
 
+  interface UserFixture {
+    username: string;
+    password: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  }
+
   type UserStatus = "online" | "offline" | "away" | "dnd";
+
+  type HttpMethod =
+    | HTTP_METHOD.GET
+    | HTTP_METHOD.POST
+    | HTTP_METHOD.PUT
+    | HTTP_METHOD.DELETE;
 
   interface Channel {
     name: string;
@@ -546,6 +562,69 @@ declare namespace Cypress {
     loginAsNewGuestUser(
       user: NewUser,
       bypassTutorial: boolean
+    ): Chainable<Response>;
+
+    // *******************************************************************************
+    // External commands using API
+    // *******************************************************************************
+
+    /**
+     * externalRequest is a task which is wrapped as command with post-verification
+     * that the external request is successfully completed
+     * @param user - a user initiating external request
+     * @param method - an HTTP method (e.g. get, post, etc)
+     * @param path - API path that is relative to Cypress.config().baseUrl
+     * @param data - payload
+     */
+    externalRequest({
+      user: UserFixture,
+      method: HttpMethod,
+      path: string,
+      data: Object
+    }): Chainable<Response>;
+
+    /**
+     * Demote a Member to Guest directly via API
+     * @param requestor - a user requesting to demote a user
+     * @param userIdToDemote - User ID to demote
+     */
+    extDemoteUser({
+      requestor: UserFixture,
+      userIdToDemote: string
+    }): Chainable<Response>;
+
+    /**
+     * Promote a Member to Guest directly via API
+     * @param requestor - a user requesting to promote a user
+     * @param userIdToPromote - User ID to promote
+     */
+    extPromoteUser({
+      requestor: UserFixture,
+      userIdToPromote: string
+    }): Chainable<Response>;
+
+    /**
+     * Remove a User from a Channel directly via API
+     * @param requestor - a user requesting to remove a user from a channel
+     * @param channelId - Channel ID
+     * @param userIdToRemove - User ID to remove from a channel
+     */
+    extRemoveUserFromChannel(
+      requestor: UserFixture,
+      channelId: string,
+      userIdToRemove: string
+    ): Chainable<Response>;
+
+    /**
+     * Remove a User from a Team directly via API
+     * @param requestor - a user requesting to remove a user from a team
+     * @param teamId - Channel ID
+     * @param userIdToRemove - User ID to remove from a team
+     */
+    extRemoveUserFromTeam(
+      requestor: UserFixture,
+      channelId: string,
+      teamId: string
     ): Chainable<Response>;
   }
 }
